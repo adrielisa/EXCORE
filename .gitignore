@@ -1,0 +1,26 @@
+# Ignorar entornos virtuales
+venv/
+
+# Ignorar archivos de configuración del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos de logs y caché
+*.log
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignorar archivos de configuración de IDEs
+.vscode/
+.idea/
+
+# Ignorar archivos de dependencias instaladas
+*.egg-info/
+*.lock
+
+# Ignorar archivos de Excel generados
+*.xlsx
+
+# Ignorar resultados de pruebas
+tests/__pycache__/
