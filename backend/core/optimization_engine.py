@@ -96,8 +96,10 @@ def run_optimization(excel_data: dict) -> dict:
             "objective": value(model.objective)
         },
         "production_plan": {
-            f"{p}_{t}": x[(p, t)].varValue for p in products for t in periods
-        }
+            p: {
+                    t: x[(p, t)].varValue for t in periods
+                } for p in products
+}
     }
 
     with open("results/results.json", "w") as f:
