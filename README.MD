@@ -130,7 +130,6 @@ This system fulfills Micron's challenge by:
 
 ---
 
-## 👨‍💻 Author
+## Author
 
-Brissa Chan and Team
 Talent Land 2025 - Micron Hackathon
