@@ -6,130 +6,80 @@ This project is a functionald backend API built using FastAPI and PuLP to optimi
 
 ## Overview
 
-The API automates production planning by:
+The backend application performs production planning optimization by:
 
-* Accepting Excel files with product data.
-* Running a linear programming model to optimize supply and demand.
-* Providing the optimized production schedule and cost.
+* Reading a pre-defined Excel file with supply chain data.
+* Structuring the data from key sheets.
+* Solving a linear programming model tailored to Micron's constraints.
+* Exporting the results as CSV and JSON files for analysis and integration.
 
----
 
-## 📂 API Endpoints
+## How It Works
 
-### `POST /upload-xlsx`
+When the server starts:
 
-**Upload Excel File**
+1. The system automatically loads a fixed Excel file located in the backend.
+2. The data from relevant sheets is transformed into a long format.
+3. A linear programming model is built, considering real-world manufacturing constraints.
+4. The model is solved using the CBC solver.
+5. The optimized production plan and metrics are saved into `results/results.json` and `results/production_plan.csv`.
 
-* Accepts a `.xlsx` file containing sheets like:
-  * `Supply_Demand`
-  * `Yield`
-  * `Wafer Plan`
-  * `Boundary Conditions`
-  * `Density per Wafer`
 
-**Returns:** JSON confirmation with available sheet names.
+## Model Logic
 
-### `POST /optimize`
+The model incorporates:
 
-**Run Optimization Model**
+* **Effective Demand**
+* **Yielded Supply**
+* **Safety Stock Targets (SST)**
+* **Yield Rate**
+* **Wafer Density**
+* **Wafer Availability**
+* **Inventory Balancing**
+* **Shortage and Excess Costs**
 
-* Processes the previously uploaded Excel file.
-* Structures the data.
-* Builds and solves a linear programming model.
-* Saves the results into `results/results.json`.
+### Constraints Implemented
 
-**Returns:** Objective value and model status.
+* Demand and inventory balance per period.
+* Weekly wafer ramp-up limit (≤ 560 wafers).
+* Production must be in multiples of 5.
+* SST bounds between 70M and 140M units.
+* Minimum of 350 wafers per week (across all products).
+* Zero inventory at the end of the planning horizon.
 
-### `GET /results`
+### Objective Function
 
-**Get Optimization Results**
+The model minimizes the total cost by penalizing:
 
-* Reads the `results.json` file.
-* Returns the final production plan (units per product per week).
+* Product shortages (weighted by product priority).
+* Excess inventory.
+* Safety stock violations.
+* Holding inventory.
 
-**Returns:** JSON summary with:
 
-* Status
-* Objective value
-* Production plan
+## Alignment with Micron's Requirements
 
-### `POST /health`
+The system addresses Micron’s optimization challenge by:
 
-**Health Check**
+* Integrating Excel-based real production data.
+* Applying custom constraints provided in the hackathon.
+* Producing a detailed, structured output for analysis.
+* Generating a functional backend suitable for real-world deployment and visualization in Power BI.
 
-* Confirms backend availability.
 
----
+## Deliverables
 
-## 🧠 What Does the Model Consider?
+* Backend source code (FastAPI + PuLP)
+* Integrated Excel data processing pipeline
+* Optimization results in CSV and JSON formats
+* Power BI-ready data
+* Documentation (README and presentation slides)
 
-The model uses:
 
-* `Effective Demand`
-* `Yielded Supply`
-* `On Hand Inventory`
-* `Safety Stock Targets`
-* `Wafer Availability`
-* `Yield %`
-* `Density per Wafer`
+## Tech Stack
 
-It minimizes the total cost using:
-
-* Shortage penalties
-* Excess inventory penalties
-* Safety stock violations
-* Inventory holding cost
-
----
-
-## 🛠️ Technologies
-
-* **Python 3.11**
-* **FastAPI**
-* **PuLP** (Linear Programming)
-* **Pandas**
-* **Uvicorn** (ASGI server)
-
----
-
-## 🧪 How to Use
-
-1. Start the backend:
-
-```bash
-uvicorn main:app --reload
-```
-
-2. Access Swagger UI at:
-
-```
-http://localhost:8000/docs
-```
-
-3. Upload Excel file → Run optimization → Fetch results.
-
----
-
-## 🎯 Goal Alignment with Micron
-
-This system fulfills Micron's challenge by:
-
-* Automating production planning based on demand and constraints.
-* Using real manufacturing data from Excel.
-* Applying linear programming to maximize efficiency.
-* Delivering a **fully functional prototype** ready for demonstration.
-
----
-
-## 🧾 Deliverables
-
-* ✅ API source code
-* ✅ Excel sample (from Micron)
-* ✅ Functional results file (`results.json`)
-* ✅ README + Documentation
-
----
-
-## Author
-
-Talent Land 2025 - Micron Hackathon
+* Python 3.11
+* FastAPI
+* PuLP (Linear Programming)
+* Pandas
+* Uvicorn
