@@ -6,7 +6,7 @@ import logging
 from pulp import LpProblem, LpMinimize, LpVariable, LpBinary, lpSum, value
 from services.data_preparation import transform_sheet_to_long_format, build_data_dict
 
-def run_optimization(excel_data: dict) -> dict:
+def run_optimization(excel_data: dict, initial_inventory_zero: bool = False, output_suffix: str = "") -> dict:
     logging.info("Starting optimization process...")
     try:
         # STEP 1: Transformación
@@ -65,7 +65,14 @@ def run_optimization(excel_data: dict) -> dict:
         M = 1e6
         for p in products:
             for i, t in enumerate(periods):
-                I_prev = 0 if i == 0 else I[(p, periods[i - 1])]
+                if i == 0:
+                    if not initial_inventory_zero:
+                        I_start = initial_inventory.get(p, {}).get(t, 0)
+                        I_prev = I_start if I_start is not None else 0
+                    else:
+                        I_prev = 0
+                else:
+                    I_prev = I[(p, periods[i - 1])]
                 W_prev = 0 if i == 0 else W[(p, periods[i - 1])]
                 D = effective_demand.get(p, {}).get(t, 0)
                 SST = safety_stock.get(p, {}).get(t, 0)
@@ -80,7 +87,7 @@ def run_optimization(excel_data: dict) -> dict:
                 if (wafer_cap := wafer_plan.get(p, {}).get(t)) is not None:
                     model += W[(p, t)] <= wafer_cap, f"WaferLimit_{p}_{t}"
 
-                # 🔥 Nuevo: límite por Boundary Conditions
+                #límite por Boundary Conditions
                 if (boundary_limit := boundary_conditions.get(p, {}).get(t)) is not None:
                     model += W[(p, t)] <= boundary_limit, f"BoundaryLimit_{p}_{t}"
 
@@ -139,6 +146,9 @@ def run_optimization(excel_data: dict) -> dict:
 
         # STEP 6: Solve
         model.solve()
+        
+# optimizacion, regresion lineal tipo arima /sarima  (forecast se saca con esto)
+#Hacer diferenciación de datos, que sean derivables
 
         # STEP 7: Resultados
         results = {
@@ -166,7 +176,8 @@ def run_optimization(excel_data: dict) -> dict:
                     {"Product ID": p, "Period": t, "Variable": "E", "Value": E[(p, t)].varValue},
                     {"Product ID": p, "Period": t, "Variable": "SSV", "Value": SSV[(p, t)].varValue},
                 ])
-        pd.DataFrame(rows).to_csv("results/production_plan.csv", index=False)
+        pd.DataFrame(rows).to_csv("results/production_plan_real.csv", index=False)  # si es real
+        pd.DataFrame(rows).to_csv("results/production_plan_zero.csv", index=False)  # si es zero
 
         logging.info(f"Optimization completed successfully. Objective: {value(model.objective)}")
         return results

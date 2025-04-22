@@ -48,16 +48,10 @@ async def startup_event():
         data = load_excel_data(file_path)
         logging.info(f"Excel file loaded successfully. Sheets: {list(data.keys())}")
 
-        # Run optimization
-        logging.info("Running optimization...")
-        results = run_optimization(data)
-        logging.info(f"Optimization completed successfully. Objective: {results['summary']['objective']}")
+        # Run both optimization scenarios
+        from core.scenarios_runner import run_all_scenarios
+        run_all_scenarios()
 
-        # Save results to results.json
-        os.makedirs("results", exist_ok=True)  # Ensure the results directory exists
-        with open("results/results.json", "w") as f:
-            json.dump(results, f, indent=2)
-        logging.info("Results saved to 'results/results.json'.")
 
     except Exception as e:
         logging.error(f"An error occurred during startup optimization: {str(e)}", exc_info=True)

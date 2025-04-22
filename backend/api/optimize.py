@@ -23,10 +23,6 @@ async def optimize_model():
         data = load_excel_data(file_path)
         results = run_optimization(data)
 
-        # Save results to results.json
-        with open("results/results.json", "w") as f:
-            json.dump(results, f, indent=2)
-
         return {"message": "Optimization complete", "results_summary": results.get("summary", {})}
 
     except Exception as e:
