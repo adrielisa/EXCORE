@@ -1,22 +1,18 @@
+
 import os
-import json
 import logging
 from fastapi import FastAPI
 from services.data_loader import load_excel_data
 from core.optimization_engine import run_optimization
 from api import upload, optimize, results, health
-import sys
-import logging
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, encoding='utf-8')
-
-# Configure logging
+# Configurar logs
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("backend.log"),  # Save logs to a file
-        logging.StreamHandler()  # Print logs to the console
+        logging.FileHandler("backend.log"),
+        logging.StreamHandler()
     ]
 )
 
@@ -29,29 +25,22 @@ app.include_router(health.router)
 
 @app.on_event("startup")
 async def startup_event():
-    """
-    Automatically load the Excel file and run optimization on backend startup.
-    """
-    file_path = "Hackaton DB Final 04.21.xlsx"  # Path to the predefined Excel file
+    file_path = "Hackaton DB Final 04.21.xlsx"
 
     logging.info("Starting backend initialization...")
     logging.info(f"Looking for Excel file at: {file_path}")
 
-    # Check if the file exists
     if not os.path.exists(file_path):
-        logging.error(f"File '{file_path}' not found. Please ensure it exists in the backend directory.")
+        logging.error(f"File '{file_path}' not found.")
         return
 
     try:
-        # Load and parse the Excel file
         logging.info("Loading Excel file...")
         data = load_excel_data(file_path)
         logging.info(f"Excel file loaded successfully. Sheets: {list(data.keys())}")
 
-        # Run both optimization scenarios
-        from core.scenarios_runner import run_all_scenarios
-        run_all_scenarios()
-
+        logging.info("Running optimization model with real initial inventory...")
+        run_optimization(data)
 
     except Exception as e:
         logging.error(f"An error occurred during startup optimization: {str(e)}", exc_info=True)
